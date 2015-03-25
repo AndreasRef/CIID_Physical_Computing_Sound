@@ -1,75 +1,106 @@
-int buttonPin[] = {13, 12, 11, 10, 9, 8};     // the number of the pushbutton pin
+int pins[] = {0, 1, 2, 3, 4, 5, 6, 7, 8}; // 0-2 vol, 3-5 wave, 6-8 envelope
+int currReadings[] = {0,0,0,0,0,0,0,0,0};
+int prevReadings[] = {0,0,0,0,0,0,0,0,0};
+int values[] = {0,0,0,0,0,0,0,0,0};
 
-int const potCh1 = A0; // analog pin used to connect the potentiometer
-int const potCh2 = A1; // analog pin used to connect the potentiometer
-int const potCh3 = A2; // analog pin used to connect the potentiometer
-
-
-boolean currentState[] = {LOW, LOW, LOW, LOW, LOW, LOW};//stroage for current button state
-
-boolean lastState[] = {LOW, LOW, LOW, LOW, LOW, LOW};//storage for last button state
-
-int currentMode[] = {0, 0, 0, 0, 0, 0};
-
-int potVal1;  // variable to read the value from the analog pin
-int potVal2;  // variable to read the value from the analog pin
-int potVal3;  // variable to read the value from the analog pin
+boolean reset = false;
 
 void setup() {
   Serial.begin(9600);
-
-  pinMode(buttonPin[0], INPUT);
-  pinMode(buttonPin[1], INPUT);
-  pinMode(buttonPin[2], INPUT);
-  pinMode(buttonPin[3], INPUT);
-  pinMode(buttonPin[4], INPUT);
-  pinMode(buttonPin[5], INPUT);
 }
 
 void loop() {
-  buttonPress(0, 5);
-  buttonPress(1, 5);
-  buttonPress(2, 5);
-  buttonPress(3, 3);
-  buttonPress(4, 3);
-  buttonPress(5, 3);
-  potVal1 = analogRead(potCh1);
-  potVal2 = analogRead(potCh2);
-  potVal3 = analogRead(potCh3);
-
-  Serial.print(potVal1);
-  Serial.print(",");                   
-  Serial.print(potVal2);
-  Serial.print(",");                   
-  Serial.print(potVal3);
-  Serial.print(",");                   
-  Serial.print(currentMode[0]);
-  Serial.print(",");   
-  Serial.print(currentMode[1]);
-  Serial.print(",");   
-  Serial.print(currentMode[2]);
-  Serial.print(",");    
-  Serial.print(currentMode[3]);
-  Serial.print(",");   
-  Serial.print(currentMode[4]);
-  Serial.print(",");   
-  Serial.println(currentMode[5]);
-  delay(10);                           // delay before sending the next set
-
-}
-
-void buttonPress(int buttonNumber, int options) {
-  currentState[buttonNumber] = digitalRead(buttonPin[buttonNumber]);
-
-  if (currentState[buttonNumber] == HIGH && lastState[buttonNumber] == LOW) { //if button has just been pressed
-    currentMode[buttonNumber]++;
-    if (currentMode[buttonNumber] >= options) {
-      currentMode[buttonNumber] = 0;
+  for(int i=0; i<9; i++){
+    currReadings[i] = analogRead(pins[i]);
+    if (abs(currReadings[i] - prevReadings[i]) > 20){
+      reset = true;
     }
-    delay(1);//crude form of button debouncing
-  } else if (currentState[buttonNumber] == LOW && lastState[buttonNumber] == HIGH) {
-    delay(1);//crude form of button debouncing
   }
-  lastState[buttonNumber] = currentState[buttonNumber];
+  if(reset == true){
+    Serial.print("readings: "); 
+    for(int i=0; i<9; i++){
+      Serial.print(currReadings[i]); 
+      Serial.print(","); 
+    }
+    Serial.println(); 
+    parseWave(3);
+    parseWave(4);
+    parseWave(5);
+    parseEnvelope(6);
+    parseEnvelope(7);
+    parseEnvelope(8);
+    parseVol(0);
+    parseVol(1);
+    parseVol(2);
+
+    for(int i=0; i<8; i++){
+      Serial.print(values[i]);
+      Serial.print(","); 
+    }
+    Serial.println(values[8]);
+
+    for(int i=0; i<9; i++){
+      prevReadings[i] = currReadings[i];
+    }
+    reset = false;
+  }
+
 }
 
+void parseWave(int number){
+  if(currReadings[number]>70 && currReadings[number]<95 ){
+    values[number] = 96; // noise
+  }
+  else if(currReadings[number]>125 && currReadings[number]<160 ){
+    values[number] = 90; // triangular wave
+  }
+  else if(currReadings[number]>453 && currReadings[number]<514 ){
+    values[number] = 65; // square wave
+  }
+  else if(currReadings[number]>515 && currReadings[number]<660 ){
+    values[number] = 43; // saw wave
+  }
+  else if(currReadings[number]>720 && currReadings[number]<845 ){
+    values[number] = 0; // sine wave
+  }
+  else{
+    values[number] = 127;
+  }
+}
+
+void parseEnvelope(int number){
+  if(currReadings[number]>70 && currReadings[number]<95 ){
+    values[number] = 55; // short envelope
+  }
+  else if(currReadings[number]>453 && currReadings[number]<514 ){
+    values[number] = 70; // medium envelope
+  }
+  else if(currReadings[number]>720 && currReadings[number]<845 ){
+    values[number] = 90; // long envelope
+  }
+  else{
+    values[number] = 0;
+  }
+}
+
+void parseVol(int number){
+  if(values[number+3] == 127 || values[number+6] == 0){
+    values[number] = 0;
+    Serial.println("invalid wave or length");
+  }
+  else{
+    if (values[number+3] == 0){
+      values[number] = currReadings[number] * 0.9;
+    }
+    else if(values[number+3] == 90){
+      values[number] = currReadings[number] * 1;
+    }
+    else if(values[number+3] == 96){
+      values[number] = currReadings[number] * 0.6;
+    }
+    else{
+      values[number] = currReadings[number] * 0.8;
+    }
+    values[number] = constrain(values[number], 0, 1023);
+  }
+}
