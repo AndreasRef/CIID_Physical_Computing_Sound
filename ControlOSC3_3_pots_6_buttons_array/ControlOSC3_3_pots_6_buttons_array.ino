@@ -90,16 +90,16 @@ void parseVol(int number){
   }
   else{
     if (values[number+3] == 0){
-      values[number] = currReadings[number] * 0.9;
+      values[number] = currReadings[number] * 1;
     }
     else if(values[number+3] == 90){
       values[number] = currReadings[number] * 1;
     }
     else if(values[number+3] == 96){
-      values[number] = currReadings[number] * 0.6;
+      values[number] = currReadings[number] * 0.8;
     }
     else{
-      values[number] = currReadings[number] * 0.8;
+      values[number] = currReadings[number] * 0.9;
     }
     values[number] = constrain(values[number], 0, 1023);
   }

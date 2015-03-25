@@ -27,24 +27,24 @@ void setup() {
 
 void draw() {
   OscMessage volumeMessage = new OscMessage("/volume");
-  volumeMessage.add(sensor[0]); /* add an int to the osc message */
-  volumeMessage.add(sensor[1]); /* add an int to the osc message */
-  volumeMessage.add(sensor[2]); /* add an int to the osc message */
+  volumeMessage.add(values[0]); /* add an int to the osc message */
+  volumeMessage.add(values[1]); /* add an int to the osc message */
+  volumeMessage.add(values[2]); /* add an int to the osc message */
     /* send the message */
   oscP5.send(volumeMessage, myRemoteLocation);
   
   
   OscMessage wavesMessage = new OscMessage("/waves");
-  wavesMessage.add(sensor[3]); /* add an int to the osc message */
-  wavesMessage.add(sensor[4]); /* add an int to the osc message */
-  wavesMessage.add(sensor[5]); /* add an int to the osc message */
+  wavesMessage.add(values[3]); /* add an int to the osc message */
+  wavesMessage.add(values[4]); /* add an int to the osc message */
+  wavesMessage.add(values[5]); /* add an int to the osc message */
     /* send the message */
   oscP5.send(wavesMessage, myRemoteLocation);
 
   OscMessage envelopeMessage = new OscMessage("/envelope");
-    envelopeMessage.add(sensor[6]); /* add an int to the osc message */
-    envelopeMessage.add(sensor[7]); /* add an int to the osc message */
-    envelopeMessage.add(sensor[8]); /* add an int to the osc message */
+    envelopeMessage.add(values[6]); /* add an int to the osc message */
+    envelopeMessage.add(values[7]); /* add an int to the osc message */
+    envelopeMessage.add(values[8]); /* add an int to the osc message */
       /* send the message */
   oscP5.send(envelopeMessage, myRemoteLocation);
 }
@@ -69,8 +69,8 @@ void serialEvent(Serial thisPort) {
 
     // if we have received all the sensor values, use them:
     if (sensors.length == 9) {
-      for(i=0; i<9; i++){
-        values[i] = sensor[i];
+      for(int i=0; i<9; i++){
+        values[i] = sensors[i];
       }
     }
   }
