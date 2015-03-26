@@ -1,18 +1,32 @@
-int pins[] = {0, 1, 2, 3, 4, 5, 6, 7, 8}; // 0-2 vol, 3-5 wave, 6-8 envelope
+int pins[] = {0, 1, 2, 13, 12, 11, 10, 9, 8}; // 0-2 vol, 3-5 wave, 6-8 envelope
+int options[] = {0, 0, 0, 3, 4, 5, 6, 7, 8}; // 0-2 vol, 3-5 wave, 6-8 envelope
 int currReadings[] = {0,0,0,0,0,0,0,0,0};
 int prevReadings[] = {0,0,0,0,0,0,0,0,0};
 int values[] = {0,0,0,0,0,0,0,0,0};
 
 boolean reset = false;
 
+boolean currentState[] = {LOW, LOW, LOW, LOW, LOW, LOW};//stroage for current button state
+boolean lastState[] = {LOW, LOW, LOW, LOW, LOW, LOW};//storage for last button state
+int currentMode[] = {0, 0, 0, 0, 0, 0};
+
 void setup() {
   Serial.begin(9600);
+  for(int i=3; i<9; i++){
+    pinMode(pins[i], INPUT);
+  }
 }
 
 void loop() {
-  for(int i=0; i<9; i++){
+  for(int i=0; i<3; i++){
     currReadings[i] = analogRead(pins[i]);
     if (abs(currReadings[i] - prevReadings[i]) > 20){
+      reset = true;
+    }
+  }
+  for(int i=3; i<9; i++){
+    readButton(i);
+    if(currReadings[i] != prevReadings[i]){
       reset = true;
     }
   }
@@ -47,20 +61,38 @@ void loop() {
 
 }
 
+void readButton(int number) {
+  currentState[number-3] = digitalRead(pins[number]);
+
+  if (currentState[number-3] == HIGH && lastState[number-3] == LOW) { //if button has just been pressed
+    values[number]++;
+    currReadings[number] = values[number];
+
+    if (values[number] >= options[number]) {
+      values[number] = 0;
+      currReadings[number] = values[number];
+    }
+    delay(1);//crude form of button debouncing
+  } else if (currentState[number-3] == LOW && lastState[number-3] == HIGH) {
+    delay(1);//crude form of button debouncing
+  }
+  lastState[number-3] = currentState[number-3];
+}
+
 void parseWave(int number){
-  if(currReadings[number]>70 && currReadings[number]<95 ){
+  if(currReadings[number]==0 ){
     values[number] = 96; // noise
   }
-  else if(currReadings[number]>125 && currReadings[number]<160 ){
+  else if(currReadings[number]==1 ){
     values[number] = 90; // triangular wave
   }
-  else if(currReadings[number]>453 && currReadings[number]<514 ){
+  else if(currReadings[number]==2 ){
     values[number] = 65; // square wave
   }
-  else if(currReadings[number]>515 && currReadings[number]<660 ){
+  else if(currReadings[number]==3 ){
     values[number] = 43; // saw wave
   }
-  else if(currReadings[number]>720 && currReadings[number]<845 ){
+  else if(currReadings[number]==4 ){
     values[number] = 0; // sine wave
   }
   else{
@@ -69,13 +101,13 @@ void parseWave(int number){
 }
 
 void parseEnvelope(int number){
-  if(currReadings[number]>70 && currReadings[number]<95 ){
+  if(currReadings[number]==0 ){
     values[number] = 55; // short envelope
   }
-  else if(currReadings[number]>453 && currReadings[number]<514 ){
+  else if(currReadings[number]==1 ){
     values[number] = 70; // medium envelope
   }
-  else if(currReadings[number]>720 && currReadings[number]<845 ){
+  else if(currReadings[number]==2 ){
     values[number] = 90; // long envelope
   }
   else{
