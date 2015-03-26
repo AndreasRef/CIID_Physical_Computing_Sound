@@ -101,7 +101,7 @@ void parseWave(int number){
 
 void parseEnvelope(int number){
   if(currReadings[number]==0 ){
-    values[number] = 55; // short envelope
+    values[number] = 48; // short envelope
   }
   else if(currReadings[number]==1 ){
     values[number] = 70; // medium envelope
