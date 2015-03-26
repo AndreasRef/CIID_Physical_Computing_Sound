@@ -1,5 +1,5 @@
 int pins[] = {0, 1, 2, 13, 12, 11, 10, 9, 8}; // 0-2 vol, 3-5 wave, 6-8 envelope
-int options[] = {0, 0, 0, 3, 4, 5, 6, 7, 8}; // 0-2 vol, 3-5 wave, 6-8 envelope
+int options[] = {0, 0, 0, 5, 5, 5, 3, 3, 3}; // 0-2 vol, 3-5 wave, 6-8 envelope
 int currReadings[] = {0,0,0,0,0,0,0,0,0};
 int prevReadings[] = {0,0,0,0,0,0,0,0,0};
 int values[] = {0,0,0,0,0,0,0,0,0};
@@ -31,12 +31,12 @@ void loop() {
     }
   }
   if(reset == true){
-    Serial.print("readings: "); 
-    for(int i=0; i<9; i++){
-      Serial.print(currReadings[i]); 
-      Serial.print(","); 
-    }
-    Serial.println(); 
+//    Serial.print("readings: "); 
+//    for(int i=0; i<9; i++){
+//      Serial.print(currReadings[i]); 
+//      Serial.print(","); 
+//    }
+//    Serial.println(); 
     parseWave(3);
     parseWave(4);
     parseWave(5);
@@ -65,18 +65,17 @@ void readButton(int number) {
   currentState[number-3] = digitalRead(pins[number]);
 
   if (currentState[number-3] == HIGH && lastState[number-3] == LOW) { //if button has just been pressed
-    values[number]++;
-    currReadings[number] = values[number];
+    currReadings[number]++;
 
-    if (values[number] >= options[number]) {
-      values[number] = 0;
-      currReadings[number] = values[number];
+    if (currReadings[number] >= options[number]) {
+      currReadings[number] = 0;
     }
     delay(1);//crude form of button debouncing
   } else if (currentState[number-3] == LOW && lastState[number-3] == HIGH) {
     delay(1);//crude form of button debouncing
   }
   lastState[number-3] = currentState[number-3];
+
 }
 
 void parseWave(int number){
@@ -118,7 +117,6 @@ void parseEnvelope(int number){
 void parseVol(int number){
   if(values[number+3] == 127 || values[number+6] == 0){
     values[number] = 0;
-    Serial.println("invalid wave or length");
   }
   else{
     if (values[number+3] == 0){
