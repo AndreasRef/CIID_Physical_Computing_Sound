@@ -70,7 +70,7 @@ void parseWave(int number){
 
 void parseEnvelope(int number){
   if(currReadings[number]>70 && currReadings[number]<95 ){
-    values[number] = 55; // short envelope
+    values[number] = 48; // short envelope
   }
   else if(currReadings[number]>453 && currReadings[number]<514 ){
     values[number] = 70; // medium envelope
@@ -90,16 +90,20 @@ void parseVol(int number){
   }
   else{
     if (values[number+3] == 0){
+      //sine wave
       values[number] = currReadings[number] * 1;
     }
     else if(values[number+3] == 90){
+      // triangular
       values[number] = currReadings[number] * 1;
     }
     else if(values[number+3] == 96){
-      values[number] = currReadings[number] * 0.8;
+      // noise
+      values[number] = currReadings[number] * 0.7;
     }
     else{
-      values[number] = currReadings[number] * 0.9;
+      // square and saw
+      values[number] = currReadings[number] * 0.8;
     }
     values[number] = constrain(values[number], 0, 1023);
   }
